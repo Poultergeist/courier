@@ -1,0 +1,53 @@
+# Ігноруємо тимчасові файли
+*.tmp
+*.temp
+*.log
+
+# Ігноруємо файли створені під час компіляції
+*.o
+*.obj
+*.exe
+*.out
+*.class
+*.so
+*.dll
+*.pdb
+*.idb
+
+# Ігноруємо папки збірки
+build/
+bin/
+Debug/
+Release/
+dist/
+
+# Ігноруємо файли налаштувань IDE
+# Visual Studio
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+*.user
+*.sln
+ipch/
+.vscode/
+.vs/
+
+# CLion/JetBrains
+.idea/
+cmake-build-*/
+*.iml
+
+# Інші тимчасові файли
+*.swp
+*.DS_Store
+*.directory
+
+# Git-метадані для певних середовищ
+*.orig
+*.rej
+*.patch
+
+# Інші файли та папки, які не мають бути в репозиторії
+*.bak
+Thumbs.db
