@@ -21,8 +21,29 @@ void DatabaseModel::executeQuery(const std::string& query) {
     }
 }
 
-void DatabaseModel::insertCourier(const int& courier_id, const std::string& type, const std::string& name) {
-    string query = "INSERT INTO courier (courier_id, type, name) VALUES ('" + to_string(courier_id) + "', '" + type + "', '" + name + "');";
+string DatabaseModel::join(const vector<string>& vec, const string& delimiter, const bool& quotes) {
+    ostringstream oss;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        const string& item = vec[i];
+
+        // Add quotes for strings if needed, otherwise just append the item
+        if (quotes && item.find_first_of("0123456789") == string::npos) {
+            oss << "'" << item << "'";
+        }
+        else {
+            oss << item;
+        }
+
+        // Only add delimiter if it's not the last element
+        if (i < vec.size() - 1) {
+            oss << delimiter;
+        }
+    }
+    return oss.str();
+}
+
+void DatabaseModel::insert(const string table, const vector<string>& columns, const std::vector<string> values) {
+    string query = "INSERT INTO " + table + " (" + join(columns, ", ", false) + ") VALUES (" + join(values, ", ", true) + ");";
     executeQuery(query);
 }
 

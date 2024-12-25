@@ -8,7 +8,14 @@ class Controller {
 private:
     DatabaseModel model;
     ConsoleView view;
+    void handleInsert();
+
     void handleInsertCourier();
+    void handleInsertPackage();
+    void handleInsertReceiver();
+    void handleInsertSender();
+    void handleInsertVehiñle();
+
     void handleViewTable();
     void handleDeleteRow();
     void handleEditData();

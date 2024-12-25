@@ -8,9 +8,12 @@ class DatabaseModel {
 private:
     std::string connection_str;
 public:
+    std::string join(const std::vector<std::string>& vec, const std::string& delimiter, const bool& quotes);
     void executeQuery(const std::string& query);
     DatabaseModel(const std::string& conn_str);
-    void insertCourier(const int& courier_id, const std::string& type, const std::string& name);
+
+    void insert(const std::string table, const std::vector<std::string>& columns, const std::vector<std::string> values);
+
     void viewTable(const std::string& table_name);
     void deleteRow(const std::string& table_name, const std::string& condition);
     void updateRow(const std::string& table_name, const std::string& set_clause, const std::string& condition);

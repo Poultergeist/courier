@@ -5,7 +5,7 @@ using namespace std;
 
 void ConsoleView::displayMenu() {
     std::cout << "\nMenu Options:\n";
-    std::cout << "1. Insert Courier\n";
+    std::cout << "1. Insert into table\n";
     std::cout << "2. View Table\n";
     std::cout << "3. Delete Row\n";
     std::cout << "4. Edit Data\n";
