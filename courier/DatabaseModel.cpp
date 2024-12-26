@@ -97,22 +97,88 @@ void DatabaseModel::generateData(const std::string& table_name, int count) {
         connection conn(connection_str);
         work txn(conn);
 
-        // Знаходимо максимальний ID у таблиці
-        std::string getMaxIdQuery = "SELECT COALESCE(MAX(courier_id), 0) FROM " + table_name + ";";
-        result res = txn.exec(getMaxIdQuery);
-        int max_id = res[0][0].as<int>();
+        // Отримуємо список колонок таблиці
+        std::string getColumnsQuery =
+            "SELECT column_name FROM information_schema.columns WHERE table_name = '" + table_name + "' ORDER BY ordinal_position;";
+        result columnsResult = txn.exec(getColumnsQuery);
 
-        // Генерація даних із наступного ID
-        std::string query =
-            "INSERT INTO " + table_name + " (courier_id, type, name) "
-            "SELECT generate_series(" + std::to_string(max_id + 1) + ", " +
-            std::to_string(max_id + count) + "), "
-            "'Type ' || generate_series(" + std::to_string(max_id + 1) + ", " +
-            std::to_string(max_id + count) + "), "
-            "'Name ' || generate_series(" + std::to_string(max_id + 1) + ", " +
-            std::to_string(max_id + count) + ");";
+        if (columnsResult.empty()) {
+            std::cerr << "Table " << table_name << " does not exist or has no columns." << std::endl;
+            return;
+        }
 
-        txn.exec(query);
+        std::vector<std::string> columns;
+        for (const auto& row : columnsResult) {
+            columns.push_back(row["column_name"].c_str());
+        }
+
+        // Генеруємо дані для кожної колонки
+        std::ostringstream query;
+        query << "INSERT INTO " << table_name << " (" << join(columns, ", ", false) << ") VALUES ";
+
+        // Знаходимо максимальний ID для ідентифікаторної колонки
+        int max_id = 0;
+        if (std::find(columns.begin(), columns.end(), "courier_id") != columns.end() ||
+            std::find(columns.begin(), columns.end(), "package_id") != columns.end() ||
+            std::find(columns.begin(), columns.end(), "sender_id") != columns.end() ||
+            std::find(columns.begin(), columns.end(), "receiver_id") != columns.end() ||
+            std::find(columns.begin(), columns.end(), "vehicle_id") != columns.end()) {
+
+            std::string idColumn = columns[0]; // Передбачається, що перший стовпець — це ID
+            std::string getMaxIdQuery = "SELECT COALESCE(MAX(" + idColumn + "), 0) FROM " + table_name + ";";
+            result maxIdResult = txn.exec(getMaxIdQuery);
+            max_id = maxIdResult[0][0].as<int>();
+        }
+
+        // Створюємо рядки даних
+        for (int i = 0; i < count; ++i) {
+            query << "(";
+            for (size_t j = 0; j < columns.size(); ++j) {
+                const std::string& column = columns[j];
+                if (column.find("id") != std::string::npos) {
+                    query << max_id + i + 1;
+                }
+                else if (column.find("name") != std::string::npos) {
+                    query << "'Name_" << max_id + i + 1 << "'";
+                }
+                else if (column.find("type") != std::string::npos) {
+                    query << "'Type_" << max_id + i + 1 << "'";
+                }
+                else if (column.find("money") != std::string::npos) {
+                    query << 1000 + (i * 10);
+                }
+                else if (column.find("weight") != std::string::npos) {
+                    query << 50 + i * 5;
+                }
+                else if (column.find("price") != std::string::npos) {
+                    query << 200 + i * 20;
+                }
+                else if (column.find("speed") != std::string::npos) {
+                    query << 60 + i * 2;
+                }
+                else if (column.find("capacity") != std::string::npos) {
+                    query << 500 + i * 50;
+                }
+                else if (column.find("address") != std::string::npos) {
+                    query << "'Address_" << max_id + i + 1 << "'";
+                }
+                else {
+                    query << "NULL";
+                }
+
+                if (j < columns.size() - 1) {
+                    query << ", ";
+                }
+            }
+            query << ")";
+            if (i < count - 1) {
+                query << ", ";
+            }
+        }
+        query << ";";
+
+        // Виконання запиту
+        txn.exec(query.str());
         txn.commit();
 
         std::cout << "Successfully generated " << count << " records in the table: " << table_name << std::endl;
